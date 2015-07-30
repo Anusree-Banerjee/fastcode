@@ -718,6 +718,14 @@
                menubarPath="fastcode.actionset.menu1/fastcode.groupMarker3">
          </action>
          <action
+               class="org.fastcode.popup.actions.OpenCloseFilesAction"
+               definitionId="FastCode.classfields.command"
+               id="FastCode.classfields.command"
+               label="Open/Close Files"
+               menubarPath="fastcode.actionset.menu1/fastcode.groupMarker3">
+         </action>
+         
+         <action
                class="org.fastcode.popup.actions.snippet.CreateNewValidationViewAction"
                definitionId="FastCode.createnewprintvalidation.command"
                id="FastCode.createnewprintvalidation.command"
@@ -1307,6 +1315,7 @@
                   name="fastcode.groupCreateTable">
             </groupMarker>
          </menu>
+          
 	</actionSet>
   </extension>
  <!-- <extension

@@ -2,32 +2,32 @@
 <root>
 	<tag name="class" required="name" optional="package,optional,type,project,override_methods" old="" endtag="true">
 	<![CDATA[
-	public class classname {
-		// TODO Auto-generated class
-
+	public class classname { 
+		// TODO Auto-generated class 
+	
 	}
 	]]>
 	</tag>
 	<tag name="file" required="name" optional="folder,optional,project" old="dir" endtag="true"></tag>
-	<tag name="package" required="name" optional="type" old="" endtag="false"></tag>
-	<tag name="folder" required="name" optional="project" old="" endtag="false"></tag>
-	<tag name="project" required="name,type" optional="srcPath" old="" endtag="false"></tag>
+	<tag name="package" required="name" optional="type,optional" old="" endtag="false"></tag>
+	<tag name="folder" required="name" optional="project,optional" old="folder,dir" endtag="false"></tag>
+	<tag name="project" required="name,type" optional="srcPath,optional" old="" endtag="false"></tag>
 	<tag name="field" required="name" optional="class,optional,fieldClass,fieldType,modifier,import" old="target" endtag="true"></tag>
-	<tag name="method" required="name" optional="class,optional,test,returnType,parameters,modifier,import" old="target" endtag="true">
+	<tag name="method" required="name" optional="class,optional,type,returnType,parameters,modifier,import" old="target" endtag="true">
 	<![CDATA[
-	public void methodname(){
+	public void methodname(){ 
 		// TODO Auto-generated method block
-
+		
 	}
 	]]>
 	</tag>
 	<tag name="message" required="title" optional="optional" old="" endtag="true"></tag>
 	<tag name="exit" required="message" optional="" old="" endtag="false"></tag>
 	<tag name="import" required="" optional="optional,class" old="" endtag="true"></tag>
-	<tag name="xml" required="node,parent" optional="file,optional" old="" endtag="true"></tag>
+	<tag name="xml" required="node,parent" optional="file,optional" old="target" endtag="true"></tag>
 	<tag name="classes" required="names" optional="package,delimiter,project,type" old="" endtag="false"></tag>
 	<tag name="files" required="names" optional="folder,delimiter,project" old="" endtag="false"></tag>
-	<tag name="property" required="file" optional="name,value" old="" endtag="false"></tag>
+	<tag name="property" required="file" optional="name,value" old="target" endtag="false"></tag>
 	<tag name="info" required="" optional="" old="" endtag="true"></tag>
-	<tag name="snippet" required="" optional="class,file" old="" endtag="true"></tag>
+	<tag name="snippet" required="" optional="class,file" old="target" endtag="true"></tag>
 </root>

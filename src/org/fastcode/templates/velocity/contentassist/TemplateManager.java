@@ -164,7 +164,7 @@ public class TemplateManager {
 		//System.out.println(setVarlist);
 		final SECOND_TEMPLATE secondTempalteItem = templateItemsMap.get(firstTemplateItem);
 		if (!firstTemplateItem.equals(FIRST_TEMPLATE.None)) {
-			if (!firstTemplateItem.equals(FIRST_TEMPLATE.Enumeration)) {
+			if (!(firstTemplateItem.equals(FIRST_TEMPLATE.Enumeration) || firstTemplateItem.equals(FIRST_TEMPLATE.json))) {
 				REFERENCE_PROPOSALS.addAll(REFERENCE_PROPOSALS_MAP.get(firstTemplateItem.getValue()));
 			}
 
@@ -184,9 +184,9 @@ public class TemplateManager {
 				if (secondTempalteItem.equals(SECOND_TEMPLATE.property)) {
 					REFERENCE_PROPOSALS.addAll(REFERENCE_PROPOSALS_MAP.get(SECOND_TEMPLATE.property));
 				}
-				if (secondTempalteItem.equals(SECOND_TEMPLATE.json)) {
+				/*if (secondTempalteItem.equals(SECOND_TEMPLATE.json)) {
 					REFERENCE_PROPOSALS.addAll(REFERENCE_PROPOSALS_MAP.get(SECOND_TEMPLATE.field.getValue() + "s"));
-				}
+				}*/
 			}
 
 		}
@@ -248,7 +248,12 @@ public class TemplateManager {
 					forLoopVarInScope = true;
 					forLoopLocalVar = fastCodeLocalVariables.getVarName();
 					//add proposal for this for loop variable
-					ArrayList<String> functions = functions = ContentAssistUtil.getTypefunctionmap(secondTempalteItem.getValue());
+					ArrayList<String> functions;
+					if (firstTemplateItem.getValue().equals(FIRST_TEMPLATE.json.getValue())) {
+						functions = ContentAssistUtil.getTypefunctionmap(firstTemplateItem.getValue());
+					} else {
+						functions = ContentAssistUtil.getTypefunctionmap(secondTempalteItem.getValue());
+					}
 					ElementProposal proposal;
 					if (functions != null) {
 						for (final String function : functions) {
@@ -274,6 +279,15 @@ public class TemplateManager {
 		return proposals;
 	}
 
+	/**
+	 * @param element
+	 * @param offset
+	 * @param length
+	 * @param silent
+	 * @param templateItemsMap
+	 * @param propertiesOnly
+	 * @return
+	 */
 	private static List<ICompletionProposal> getElementProposals(final String element, final int offset, final int length,
 			final boolean silent, final Map<FIRST_TEMPLATE, SECOND_TEMPLATE> templateItemsMap, final boolean propertiesOnly) {
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
@@ -417,15 +431,35 @@ public class TemplateManager {
 		return referenceProposal;
 	}
 
+	/**
+	 * @param element
+	 * @param silent
+	 * @return
+	 */
 	private static String createReferenceString(final String element, final boolean silent) {
 		return (silent ? "$!{" : "${") + element + "}";
 	}
 
+	/**
+	 * @param referenceProposal
+	 * @param offset
+	 * @param length
+	 * @param silent
+	 * @return
+	 */
 	private static TemplateProposal createTemplateProposal(final ElementProposal referenceProposal, final int offset, final int length,
 			final boolean silent) {
 		return createTemplateProposal("", referenceProposal, offset, length, silent);
 	}
 
+	/**
+	 * @param prefix
+	 * @param referenceProposal
+	 * @param offset
+	 * @param length
+	 * @param silent
+	 * @return
+	 */
 	private static TemplateProposal createTemplateProposal(final String prefix, final ElementProposal referenceProposal, final int offset,
 			final int length, final boolean silent) {
 

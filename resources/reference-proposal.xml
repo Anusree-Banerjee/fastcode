@@ -252,4 +252,23 @@
 			description="  name " offset="0" basic="false">
 		</function-proposal>
 	</element-proposal>
+	<element-proposal proposal="json" prefix="field - "
+		description="" offset="0" basic="true">
+		<function-proposal proposal="name" description="name "
+			prefix="field - " offset="0" basic="false">
+		</function-proposal>
+		<function-proposal proposal="value" description="value "
+			prefix="field - " offset="0" basic="false">
+			</function-proposal>
+			<function-proposal proposal="fullName" description="fullName "
+			prefix="field - " offset="0" basic="false">
+		</function-proposal>
+		<!-- <function-proposal proposal="instance" prefix="class - "
+			description="instance " offset="0" basic="false">
+		</function-proposal>
+		<function-proposal proposal="fields" prefix="class - "
+			description="fields " offset="0" basic="false">
+		</function-proposal> -->
+
+	</element-proposal>
 </root>

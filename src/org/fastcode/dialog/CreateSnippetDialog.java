@@ -571,6 +571,7 @@ public class CreateSnippetDialog extends TrayDialog {
 					}*/
 					break;
 				case File:
+				case json:
 					String selectedFileName = CreateSnippetDialog.this.selectTypeCombo.getText();
 					if (selectedFileName.contains(ENCLOSING_FILE_STR)) {
 						selectedFileName = CreateSnippetDialog.this.currentType;
@@ -738,6 +739,7 @@ public class CreateSnippetDialog extends TrayDialog {
 					}
 					break;
 				case File:
+				case json:
 					String inputFileName = CreateSnippetDialog.this.selectTypeCombo.getText();
 					if (!isEmpty(inputFileName)) {
 						if (inputFileName.contains(ENCLOSING_FILE_STR)) {
@@ -937,6 +939,7 @@ public class CreateSnippetDialog extends TrayDialog {
 					}
 					break;
 				case File:
+				case json:
 					final OpenResourceDialog resourceDialog = new OpenResourceDialog(parent.getShell(), ResourcesPlugin.getWorkspace()
 							.getRoot(), IResource.FILE);
 					resourceDialog.setTitle("Select File ");
@@ -2160,6 +2163,7 @@ public class CreateSnippetDialog extends TrayDialog {
 				}
 				break;
 			case File:
+			case json:
 				enableSelectType("Select File:                   ", "Browse File", true, false);
 				break;
 			case Folder:
@@ -2648,6 +2652,7 @@ public class CreateSnippetDialog extends TrayDialog {
 
 			break;
 		case File:
+		case json:
 			if (editorPart != null) {
 				if (compUnit == null) {
 					final IFile file = (IFile) editorPart.getEditorInput().getAdapter(IFile.class);
@@ -2933,6 +2938,7 @@ public class CreateSnippetDialog extends TrayDialog {
 			}
 			break;
 		case File:
+		case json:
 			if (this.createSnippetData.getResourceFile() != null) {
 
 				final IFile selectedFile = this.createSnippetData.getResourceFile();

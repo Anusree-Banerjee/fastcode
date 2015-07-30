@@ -2045,7 +2045,7 @@
 			#foreach ($field in ${where_fields})
 				#set ($strfields = "${strfields}${field.name}")
 			#end
-			<fc:method name="getListof${table}${strfields}">
+			<fc:method name="getListOf${table}${strfields}">
 			
 			public List<${class.name}> getListOf${table}${strfields}(#foreach ($field in ${where_fields}) #if (${field.whereQualifier.count} > 0) <fc:import>${field.javaTypeName}</fc:import> #set ($type = "${field.javaTypeName.substring($field.javaTypeName.lastIndexOf('.'))}") final ${type.replace('.','')} ${field.javaName} #if ($foreach.count < ${where_fields.size()}),#end #end #end) throws SQLException {
 				List<${class.name}> ${class.defaultInstance}List = new ArrayList<${class.name}>();

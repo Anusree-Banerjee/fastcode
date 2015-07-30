@@ -190,14 +190,14 @@ public class FastCodeDirectiveVelocityUtil {
 								displayString = proposalString;
 								cursorOffset = proposalString.length();
 								proposals.add(createTemplateProposal(proposalString, displayString, offset, length, cursorOffset));
-							} else if (secondTemplateItem.equals(SECOND_TEMPLATE.json)) {
-								final String middle_part = DOLLAR + SECOND_TEMPLATE.field.getValue() + SPACE + "in" + SPACE + DOLLAR + LEFT_CURL
-										+ VariablesUtil.getPlural(SECOND_TEMPLATE.field.getValue()) + RIGHT_CURL;
+							} /*else if (secondTemplateItem.equals(SECOND_TEMPLATE.json)) {
+								final String middle_part = DOLLAR + SECOND_TEMPLATE.field.getValue() + SPACE + "in" + SPACE + DOLLAR
+										+ LEFT_CURL + VariablesUtil.getPlural(SECOND_TEMPLATE.field.getValue()) + RIGHT_CURL;
 								final String proposalString = first_part + middle_part + last_part;
 								displayString = proposalString;
 								cursorOffset = proposalString.length();
 								proposals.add(createTemplateProposal(proposalString, displayString, offset, length, cursorOffset));
-							} else {
+							} */else {
 
 								final String middle_part = DOLLAR + secondTemplateItem.getValue() + SPACE + "in" + SPACE + DOLLAR + LEFT_CURL
 										+ VariablesUtil.getPlural(secondTemplateItem.getValue()) + RIGHT_CURL;

@@ -24,12 +24,14 @@ package org.fastcode.popup.actions;
 
 import static org.eclipse.jdt.ui.JavaUI.openInEditor;
 import static org.eclipse.jdt.ui.JavaUI.revealInEditor;
+import static org.fastcode.common.FastCodeConstants.ASTERISK;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -43,25 +45,28 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionDelegate;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PartInitException;
-import org.fastcode.common.OpenRequiredClassesData;
-import org.fastcode.dialog.OpenRequiredClassesDialog;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.fastcode.common.OpenCloseFilesData;
+import org.fastcode.dialog.OpenCloseFilesDialog;
 import org.fastcode.util.MessageUtil;
 
 /**
  * @author Gautam
  *
  */
-public class OpenRequiredClassesAction implements IActionDelegate, IWorkbenchWindowActionDelegate {
+public class OpenCloseFilesAction implements IActionDelegate, IWorkbenchWindowActionDelegate {
 
 	protected IWorkbenchWindow	window;
 	protected IWorkbenchPage	page;
 	protected IEditorPart		editorPart;
 	IWorkingCopyManager			manager;
-	OpenRequiredClassesData		openRequiredClassesData;
+	OpenCloseFilesData			openCloseFilesData;
 
 	@Override
 	public void run(final IAction arg0) {
@@ -78,28 +83,36 @@ public class OpenRequiredClassesAction implements IActionDelegate, IWorkbenchWin
 		}
 
 		final Shell parentShell = MessageUtil.getParentShell();
-		final Shell shell = parentShell == null ? new Shell() : parentShell;
-		this.openRequiredClassesData = getOpenRequiredClasses();
+		//final Shell shell = parentShell == null ? new Shell() : parentShell;
+		this.openCloseFilesData = getOpenCloseFiles();
 
-		if (this.openRequiredClassesData == null) {
+		if (this.openCloseFilesData == null) {
 			return;
 		}
 
-		if (this.openRequiredClassesData.isCloseOthers()) {
+		if (this.openCloseFilesData.isCloseOthers()) {
 			for (final IWorkbenchPage workbenchPage : this.window.getWorkbench().getActiveWorkbenchWindow().getPages()) {
 				workbenchPage.closeAllEditors(false);
 
 			}
 		}
 		try {
-			System.out.println(this.openRequiredClassesData.getFastCodePackage().getPackageFragment());
+			//System.out.println(this.openCloseFilesData.getFastCodePackage().getPackageFragment());
 			//System.out.println(this.openRequiredClassesData.getFastCodePackage().getPackageFragment().getChildren());
-			System.out.println(this.openRequiredClassesData.getFastCodePackage().getPackageFragment().getCompilationUnits());
-			for (final IJavaElement javaElement : this.openRequiredClassesData.getFastCodePackage().getPackageFragment()
-					.getCompilationUnits()) {
-				if (matchPattern(javaElement, this.openRequiredClassesData.getPattern())) {
-					final IEditorPart javaEditor = openInEditor(javaElement);
-					revealInEditor(javaEditor, javaElement);
+			//System.out.println(this.openCloseFilesData.getFastCodeFolder().name);
+			for (final IResource resource : this.openCloseFilesData.getFastCodeFolder().getFolder().members()) {
+				if (matchPattern(resource, this.openCloseFilesData.getPattern())) {
+					/*System.out.println(this.openCloseFilesData.getFastCodeFolder().name);
+					System.out.println("ABC" + resource.getClass());*/
+					if (resource instanceof IFile) {
+
+						final IWorkbench wb = PlatformUI.getWorkbench();
+						final IWorkbenchPage page = wb.getActiveWorkbenchWindow().getActivePage();
+						IDE.openEditor(page, (IFile) resource);
+					} else if (resource instanceof IJavaElement) {
+						final IEditorPart javaEditor = openInEditor((IJavaElement) resource);
+						revealInEditor(javaEditor, (IJavaElement) resource);
+					}
 				}
 			}
 		} catch (final JavaModelException e) {
@@ -114,18 +127,22 @@ public class OpenRequiredClassesAction implements IActionDelegate, IWorkbenchWin
 
 	}
 
-	private boolean matchPattern(final IJavaElement javaElement, final String pattern) {
-		final Pattern pattrn = Pattern.compile(pattern);
-		System.out.println(javaElement.getElementName());
-		final Matcher matcher = pattrn.matcher(javaElement.getElementName());
+	private boolean matchPattern(final IResource resource, final String pattern) {
+		/*if (isEmpty(pattern)) {
+			pattern = "\\*";
+		}*/
+		//final Pattern pattrn = Pattern.compile(pattern);
+		//System.out.println(resource.getName());
+		final Pattern pattrn = Pattern.compile(pattern.replace(ASTERISK, ".*"), Pattern.CASE_INSENSITIVE);
+		final Matcher matcher = pattrn.matcher(resource.getName());
 		return matcher.matches();
 
 		//return javaElement.getElementName().matches(pattern);
 	}
 
-	private OpenRequiredClassesData getOpenRequiredClasses() {
+	private OpenCloseFilesData getOpenCloseFiles() {
 
-		final OpenRequiredClassesData openRequiredClassesData = new OpenRequiredClassesData();
+		final OpenCloseFilesData openRequiredClassesData = new OpenCloseFilesData();
 
 		IProject project = null;
 		final ICompilationUnit compUnit;
@@ -142,7 +159,7 @@ public class OpenRequiredClassesAction implements IActionDelegate, IWorkbenchWin
 
 		openRequiredClassesData.setProject(project);
 
-		final OpenRequiredClassesDialog openRequiredClassesDialog = new OpenRequiredClassesDialog(new Shell(), openRequiredClassesData);
+		final OpenCloseFilesDialog openRequiredClassesDialog = new OpenCloseFilesDialog(new Shell(), openRequiredClassesData);
 		if (openRequiredClassesDialog.open() == Window.CANCEL) {
 			return null;
 		}

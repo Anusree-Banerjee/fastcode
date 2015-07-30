@@ -38,7 +38,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.fastcode.Activator;
 import org.fastcode.common.FastCodeConstants;
@@ -457,14 +456,15 @@ public class TemplateValidator {
 									|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.File.getValue())
 									|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.Folder.getValue())
 									|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.Package.getValue())
-									|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.None.getValue()) || choice1
-										.equalsIgnoreCase(FIRST_TEMPLATE.Enumeration.getValue()))) {
+									|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.None.getValue())
+									|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.Enumeration.getValue()) || choice1
+										.equalsIgnoreCase(FIRST_TEMPLATE.json.getValue()))) {
 						throw new Exception(templateName
-								+ " : 1st template item must have one of these values class/file/package/folder/enum/none.");
+								+ " : 1st template item must have one of these values class/file/package/folder/enum/json/none.");
 					}
 				} else {
 					throw new Exception(templateName
-							+ " : 1st template item must have one of these values class/file/package/folder/enum/none.");
+							+ " : 1st template item must have one of these values class/file/package/folder/enum/json/none.");
 				}
 				if (templateSettings.getSecondTemplateItem() != null) {
 					final String choice2 = templateSettings.getSecondTemplateItem().getValue();
@@ -482,11 +482,10 @@ public class TemplateValidator {
 					if (!isEmpty(choice2)
 							&& choice1.equalsIgnoreCase(FIRST_TEMPLATE.File.getValue())
 							&& !(choice2.equalsIgnoreCase(SECOND_TEMPLATE.none.getValue())
-									|| choice2.equalsIgnoreCase(SECOND_TEMPLATE.property.getValue())
-									|| choice2.equalsIgnoreCase(SECOND_TEMPLATE.data.getValue()) || choice2
-										.equalsIgnoreCase(SECOND_TEMPLATE.json.getValue()))) {
+									|| choice2.equalsIgnoreCase(SECOND_TEMPLATE.property.getValue()) || choice2
+										.equalsIgnoreCase(SECOND_TEMPLATE.data.getValue()))) {
 						throw new Exception(templateName
-								+ " : when 1st template item is - file - 2nd template item can  be property/data/json/none.");
+								+ " : when 1st template item is - file - 2nd template item can  be property/data/none.");
 					}
 					if (isEmpty(choice2)
 							|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.Package.getValue())
@@ -505,6 +504,12 @@ public class TemplateValidator {
 							&& !(choice2.equalsIgnoreCase(SECOND_TEMPLATE.none.getValue()) || choice2
 									.equalsIgnoreCase(SECOND_TEMPLATE.field.getValue()))) {
 						throw new Exception(templateName + " : when 1st template item is - enum - 2nd template item can be field/none.");
+					}
+					if (isEmpty(choice2)
+							|| choice1.equalsIgnoreCase(FIRST_TEMPLATE.json.getValue())
+							&& !(choice2.equalsIgnoreCase(SECOND_TEMPLATE.none.getValue()) || choice2
+									.equalsIgnoreCase(SECOND_TEMPLATE.field.getValue()))) {
+						throw new Exception(templateName + " : when 1st template item is - json - 2nd template item can be field/none.");
 					}
 				} else {
 					throw new Exception(templateName

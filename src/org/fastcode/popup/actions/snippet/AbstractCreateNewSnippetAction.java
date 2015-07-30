@@ -189,10 +189,6 @@ import org.fastcode.util.FileUtil;
 import org.fastcode.util.MessageUtil;
 import org.fastcode.util.SourceUtil;
 import org.fastcode.util.StringUtil;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  * @author Gautam
@@ -221,7 +217,6 @@ public abstract class AbstractCreateNewSnippetAction {
 	CreateSnippetData							createSnippetData;
 	protected boolean							fromTemplateSetting	= false;
 	protected boolean							snippetSelection	= false;
-	private final List<FastCodeField>			jsonFieldList		= new ArrayList<FastCodeField>();
 
 	static {
 		final List<String> vals = new ArrayList<String>();
@@ -481,8 +476,11 @@ public abstract class AbstractCreateNewSnippetAction {
 								this.createSnippetData, placeHolders);
 						createNewFileSnippetAction.runAction();
 					}
-					if (this.templateSettings.getSecondTemplateItem() == SECOND_TEMPLATE.json) {
-						getJsonFileElements(this.templateSettings, placeHolders, this.createSnippetData.getResourceFile());
+					if (this.templateSettings.getFirstTemplateItem() == FIRST_TEMPLATE.json) {
+						final CreateNewJsonFieldSelectionAction createNewJsonFieldSelectionAction = new CreateNewJsonFieldSelectionAction();
+						createNewJsonFieldSelectionAction.getJsonFileElements(this.templateSettings, placeHolders,
+								this.createSnippetData.getResourceFile());
+
 					}
 					// loadItemsFromFile(placeHolders, this.templateSettings,
 					// this.createSnippetData.getFastCodeFiles().get(0));
@@ -796,9 +794,6 @@ public abstract class AbstractCreateNewSnippetAction {
 							selections.getLength(), sb3.toString().trim());
 				}*/
 			}
-
-
-
 
 			if (!this.useLast) {
 				templateCache.templateType = this.templateType;
@@ -1384,7 +1379,11 @@ public abstract class AbstractCreateNewSnippetAction {
 	 * @return
 	 */
 	protected boolean requireFiles(final Map<String, Object> placeHolders, final TemplateSettings templateSetting) {
-		return templateSetting.getFirstTemplateItem() == FIRST_TEMPLATE.File;
+		if (templateSetting.getFirstTemplateItem() == FIRST_TEMPLATE.File || templateSetting.getFirstTemplateItem() == FIRST_TEMPLATE.json) {
+			return true;
+		}
+		return false;
+		//return templateSetting.getFirstTemplateItem() == FIRST_TEMPLATE.File;
 	}
 
 	/**
@@ -2495,232 +2494,4 @@ public abstract class AbstractCreateNewSnippetAction {
 		return globalSettings.getPropertyValue("TEMPLATE_HIGHLIGHT_SNIPPET", "true").equalsIgnoreCase("true");
 	}
 
-	/**
-	 * @param templateSettings
-	 * @param placeHolders
-	 * @param resourceFile
-	 * @throws Exception
-	 */
-	private void getJsonFileElements(final TemplateSettings templateSettings, final Map<String, Object> placeHolders,
-			final IFile resourceFile) throws Exception {
-		final JSONParser jsonParser = new JSONParser();
-		final Object object = jsonParser.parse(SourceUtil.getFileContents(resourceFile));
-		//final org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) object;
-		parseJson(object, null);
-		final CheckedTreeSelectionDialog checkedTreeSelectionDialog = new CheckedTreeSelectionDialog(new Shell(), new JsonLevelProvider(),
-				new JsonContentProvider());
-
-		checkedTreeSelectionDialog.setTitle("Field Selection");
-		checkedTreeSelectionDialog.setMessage("Select Json fields");
-
-		checkedTreeSelectionDialog.setInput(filterJsonList(this.jsonFieldList));
-		if (checkedTreeSelectionDialog.open() == Window.CANCEL) {
-			this.jsonFieldList.clear();
-			placeHolders.put("_exit", true);
-			return;
-		}
-		placeHolders.put("fields", checkedTreeSelectionDialog.getResult());
-		this.jsonFieldList.clear();
-	}
-
-	/**
-	 * @param jsonFieldList
-	 * @return
-	 */
-	private List<FastCodeField> filterJsonList(final List<FastCodeField> jsonFieldList) {
-		final List<FastCodeField> initialList = new ArrayList<FastCodeField>();
-		for (final FastCodeField fastCodeField : jsonFieldList) {
-			if (fastCodeField.getParentField() == null) {
-				initialList.add(fastCodeField);
-			}
-		}
-		return initialList;
-	}
-
-	/**
-	 * @param jsonObject
-	 * @param parentField
-	 * @throws ParseException
-	 */
-
-	private void parseJson(final Object object, final FastCodeField parentField) throws ParseException {
-		final JSONObject jsonObject = (JSONObject) object;
-		FastCodeField jsonField = null;
-		System.out.println(jsonObject);
-
-		for (final Object objct : jsonObject.keySet()) {
-			try {
-				if (parentField != null) {
-					jsonField = new FastCodeField(objct.toString(), jsonObject.get(objct).toString(), parentField);
-				} else {
-					jsonField = new FastCodeField(objct.toString(), jsonObject.get(objct).toString());
-				}
-				if (this.jsonFieldList == null) {
-					this.jsonFieldList.add(jsonField);
-				} else if (this.jsonFieldList != null && !this.jsonFieldList.contains(jsonField)) {
-					this.jsonFieldList.add(jsonField);
-				}
-				if (jsonObject.get(objct) instanceof JSONArray) {
-					getArray(jsonObject.get(objct), jsonField);
-
-				} else {
-					if (jsonObject.get(objct) instanceof JSONObject) {
-						//parentJson = new FastCodeField(objct.toString(), jsonObject.get(objct).toString());
-						parseJson(jsonObject.get(objct), jsonField);
-					}
-				}
-
-				//this.jsonFieldList.add(jsonField);
-			} catch (final Exception ex) {
-
-			}
-
-			/*final Set<Object> set = jsonObject.keySet();
-
-			final Iterator iterator = set.iterator();
-
-			while (iterator.hasNext()) {
-				final Object obj = iterator.next();
-				if (jsonObject.get(obj) instanceof JSONArray) {
-					System.out.println(obj.toString());
-
-					getArray(jsonObject.get(obj));
-				} else {
-					if (jsonObject.get(obj) instanceof JSONObject) {
-						parseJson((JSONObject) jsonObject.get(obj));
-					} else {
-						System.out.println(obj.toString() + "\t" + jsonObject.get(obj));
-					}
-				}
-			}*/
-		}
-	}
-
-	/**
-	 * @param object
-	 * @param jsonField
-	 * @throws ParseException
-	 */
-	private void getArray(final Object object, final FastCodeField jsonField) {
-		try {
-			final JSONArray jsonArr = (JSONArray) object;
-
-			for (int k = 0; k < jsonArr.size(); k++) {
-				if (jsonArr.get(k) instanceof JSONObject) {
-					parseJson(jsonArr.get(k), jsonField);//getChildrenForJson(jsonArr.get(k));
-				} else {
-					final FastCodeField field = new FastCodeField(jsonArr.toString(), jsonArr.get(k).toString(), jsonField);
-					if (this.jsonFieldList == null) {
-						this.jsonFieldList.add(field);
-					} else if (this.jsonFieldList != null && !this.jsonFieldList.contains(field)) {
-						this.jsonFieldList.add(field);
-					}
-				}
-				//System.out.println(jsonArr.get(k));
-			}
-		} catch (final Exception ex) {
-			// TODO Auto-generated catch block
-			ex.printStackTrace();
-		}
-
-	}
-
-	private class JsonLevelProvider implements ILabelProvider {
-
-		@Override
-		public void addListener(final ILabelProviderListener arg0) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void dispose() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public boolean isLabelProperty(final Object arg0, final String arg1) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public void removeListener(final ILabelProviderListener arg0) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public Image getImage(final Object arg0) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public String getText(final Object obj) {
-			if (obj instanceof FastCodeField) {
-				return ((FastCodeField) obj).getName();
-			}
-			return null;
-		}
-
-	}
-
-	private class JsonContentProvider implements ITreeContentProvider {
-
-		@Override
-		public void dispose() {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void inputChanged(final Viewer arg0, final Object arg1, final Object arg2) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public Object[] getChildren(final Object input) {
-			final List<FastCodeField> subJsonField = new ArrayList<FastCodeField>();
-			if (input instanceof ArrayList<?>) {
-				return ((ArrayList<FastCodeField>) input).toArray(new FastCodeField[0]);
-
-			}
-			if (input instanceof FastCodeField) {
-				for (final FastCodeField fastCodeField : AbstractCreateNewSnippetAction.this.jsonFieldList) {
-					if (fastCodeField.getParentField() != null && fastCodeField.getParentField().equals(input)) {
-						subJsonField.add(fastCodeField);
-					}
-				}
-
-				return subJsonField.toArray(new FastCodeField[0]);
-			}
-			return null;
-
-		}
-
-		@Override
-		public Object[] getElements(final Object jsonObject) {
-			return getChildren(jsonObject);
-		}
-
-		@Override
-		public Object getParent(final Object obj) {
-			return obj instanceof FastCodeField ? ((FastCodeField) obj).getParentField() : null;
-		}
-
-		@Override
-		public boolean hasChildren(final Object obj) {
-			if (obj instanceof FastCodeField) {
-				if (((FastCodeField) obj).getParentField() == null) {
-					return true;
-				}
-			}
-
-			return false;
-
-		}
-	}
 }

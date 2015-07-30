@@ -72,6 +72,16 @@ public class FastCodeField extends AbstractFastCodeField {
 	}
 
 	/**
+	 *
+	 * @param field
+	 * @param name
+	 * @throws Exception
+	 */
+	public FastCodeField(final IField field, final String name) throws Exception {
+		this(field, name, null, null);
+	}
+
+	/**
 	 * @param name
 	 * @param value
 	 * @throws Exception
@@ -87,19 +97,16 @@ public class FastCodeField extends AbstractFastCodeField {
 	 * @param parentField
 	 * @throws Exception
 	 */
-	public FastCodeField(final String name, final String value, final FastCodeField parentField) throws Exception {
+	public FastCodeField(final String name, final String value, FastCodeField parentField) throws Exception {
 		super(name, value);
 		this.parentField = parentField;
-	}
-
-	/**
-	 *
-	 * @param field
-	 * @param name
-	 * @throws Exception
-	 */
-	public FastCodeField(final IField field, final String name) throws Exception {
-		this(field, name, null, null);
+		this.fullName = parentField.getName() + DOT + name;
+		while (parentField.getParentField() != null) {
+			this.fullName = parentField.getParentField().getName() + DOT + this.fullName;
+			parentField = parentField.getParentField();
+			//break;
+		}
+		//System.out.println(this.fullName);
 	}
 
 	/**

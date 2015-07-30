@@ -46,9 +46,9 @@ public class TemplatePreferencePart {
 	private static final String[][]	NUMBER_OF_REQUIRED_ITMES	= { { "0", "0" }, { "1", "1" }, { "2", "2" } };
 	private static final String[][]	SECOND_TEMPLATE_CHOICE		= { { "Field", "field" }, { "Method", "method" },
 			{ "Method/Field", "both" }, { "Custom", "custom" }, { "Class", "class" }, { "File", "file" }, { "Property", "property" },
-			{ "Data", "data" }, { "Json", "json" }, { "None", "none" } };
+			{ "Data", "data" }, { "None", "none" }				};
 	private static final String[][]	FIRST_TEMPLATE_CHOICE		= { { "Class", "class" }, { "File", "file" }, { "Package", "package" },
-			{ "Folder", "folder" }, { "Enumeration", "enum" }, { "None", "none" } };
+			{ "Folder", "folder" }, { "Enumeration", "enum" }, { "Json", "json" }, { "None", "none" } };
 	final String					templateName;
 	BooleanFieldEditor				enableTemplateCheckBox;
 	StringFieldEditor				templateVariationField;

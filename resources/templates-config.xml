@@ -1927,112 +1927,54 @@
 			]]>
 		</template-body>
 		</template>
-
+		
 		<template name="Create_methods_in_classes">
 		<allowed-file-names>*</allowed-file-names>
 		<first-template-item>none</first-template-item>
 		<second-template-item>none</second-template-item>
-		<additional-parameters>Dao:class DaoImpl:class Service:class ServiceImpl:class Controller:class  methodName returnType:class(required="false")</additional-parameters>
+		<additional-parameters>Dao:class DaoImpl:class Service:class ServiceImpl:class Controller:class  methodName requireDaoImplTestMethod:boolean DaoImplTest:class requireServiceImplTestMethod:boolean ServiceImplTest:class requireControllerTestMethod:boolean ControllerTest:class </additional-parameters>
 		<template-body>
 			<![CDATA[
-					#set($importClass = "")
-					#set($returnClass = "void")
-
-					#if (${returnType})
-						#set ($importClass = "${returnType.fullyQualifiedName}")
-						#set ($returnClass = "${returnType.name}")
-					#end
-
-					<fc:method name="${methodName}" class="${Dao.fullyQualifiedName}" import="${importClass}">
-						public ${returnClass} ${methodName}() ;
-					</fc:method>
-					<fc:method name="${methodName}" class="${DaoImpl.fullyQualifiedName}" import="${importClass}">
-						public ${returnClass} ${methodName}() {
-							// TODO Auto-generated method block
-							#if (${returnType})
-								return null;
-							#end
-						}
-					</fc:method>
-					<fc:method name="${methodName}"class="${Service.fullyQualifiedName}" import="${importClass}">
+					<fc:method name="${methodName}" class="${Dao.fullyQualifiedName}">
 						public Object ${methodName}() ;
 					</fc:method>
-					<fc:method name="${methodName}"class="${ServiceImpl.fullyQualifiedName}" import="${importClass}">
-								public Object ${methodName}() {
-						##${Dao.name} ${Dao.defaultInstance} = new ${DaoImpl.name}();
-						#if (${returnType}) return #end ${Dao.defaultInstance}.${methodName}();
+					<fc:method name="${methodName}" class="${DaoImpl.fullyQualifiedName}">
+						public Object ${methodName}() { 
+						// TODO Auto-generated method block
+						}
+					</fc:method>
+					<fc:method name="${methodName}"class="${Service.fullyQualifiedName}">
+						public Object ${methodName}() ;
+					</fc:method>
+					<fc:method name="${methodName}"class="${ServiceImpl.fullyQualifiedName}">
+								public Object ${methodName}() { 
+						${Dao.name} ${Dao.defaultInstance} = new ${DaoImpl.name}();
+						${Dao.defaultInstance}.${methodName}();
 					}
 					</fc:method>
-					<fc:method name="${methodName}" class="${Controller.fullyQualifiedName}" import="${importClass}">
-						public Object ${methodName}() {
-						## ${Service.name} ${Service.defaultInstance} = new ${ServiceImpl.name};
+					<fc:method name="${methodName}" class="${Controller.fullyQualifiedName}">
+						public Object ${methodName}() { 
+						${Service.name} ${Service.defaultInstance} = new ${ServiceImpl.name};
 						${Service.defaultInstance}.${methodName}();
 						}
 					</fc:method>
-			]]>
-		</template-body>
-	</template>
-
-		<template name="Create_methods_in_classes_with_test">
-		<allowed-file-names>*</allowed-file-names>
-		<first-template-item>none</first-template-item>
-		<second-template-item>none</second-template-item>
-		<additional-parameters>Dao:class DaoImpl:class Service:class ServiceImpl:class Controller:class  methodName returnType:class(required="false") requireDaoImplTestMethod:boolean DaoImplTest:class requireServiceImplTestMethod:boolean ServiceImplTest:class requireControllerTestMethod:boolean ControllerTest:class </additional-parameters>
-		<template-body>
-			<![CDATA[
-
-					#set($importClass = "")
-					#set($returnClass = "void")
-
-					#if (${returnType})
-						#set ($importClass = "${returnType.fullyQualifiedName}")
-						#set ($returnClass = "${returnType.name}")
-					#end
-
-					<fc:method name="${methodName}" class="${Dao.fullyQualifiedName}" import="${importClass}">
-						public ${returnClass} ${methodName}() ;
-					</fc:method>
-					<fc:method name="${methodName}" class="${DaoImpl.fullyQualifiedName}" import="${importClass}">
-						public ${returnClass} ${methodName}() {
-							// TODO Auto-generated method block
-							#if (${returnType})
-								return null;
-							#end
-						}
-					</fc:method>
-					<fc:method name="${methodName}"class="${Service.fullyQualifiedName}" import="${importClass}">
-						public Object ${methodName}() ;
-					</fc:method>
-					<fc:method name="${methodName}"class="${ServiceImpl.fullyQualifiedName}" import="${importClass}">
-								public Object ${methodName}() {
-						##${Dao.name} ${Dao.defaultInstance} = new ${DaoImpl.name}();
-						#if (${returnType}) return #end ${Dao.defaultInstance}.${methodName}();
-					}
-					</fc:method>
-					<fc:method name="${methodName}" class="${Controller.fullyQualifiedName}" import="${importClass}"S>
-						public Object ${methodName}() {
-						## ${Service.name} ${Service.defaultInstance} = new ${ServiceImpl.name};
-						${Service.defaultInstance}.${methodName}();
-						}
-					</fc:method>
-
 				#if(${requireDaoImplTestMethod})
 						<fc:method name="${methodName}Test" class="${DaoImplTest.fullyQualifiedName}" >
-							public void ${methodName}Test() {
+							public Object ${methodName}Test() { 
 							// TODO Auto-generated method block
 						}
 						</fc:method>
 				#end
 				#if(${requireServiceImplTestMethod})
-						<fc:method name="${methodName}Test" class="${ServiceImplTest.fullyQualifiedName}">
-							public void ${methodName}Test() {
+						<fc:method name="${methodName}Test" class="${ServiceImplTest.fullyQualifiedName}" >
+							public Object ${methodName}Test() { 
 							// TODO Auto-generated method block
 						}
 						</fc:method>
 				#end
 				#if(${requireControllerTestMethod})
 						<fc:method name="${methodName}Test" class="${ControllerTest.fullyQualifiedName}" >
-							public void ${methodName}Test() {
+							public Object ${methodName}Test() { 
 						// TODO Auto-generated method block
 						}
 						</fc:method>
@@ -2050,47 +1992,47 @@
 					<fc:method name="${methodName}" class="${Dao.fullyQualifiedName}">
 						public Object ${methodName}() ;
 					</fc:method>
-
+						
 					<fc:method name="${methodName}" class="${DaoImpl.fullyQualifiedName}">
-						public Object ${methodName}() {
+						public Object ${methodName}() { 
 						// TODO Auto-generated method block
 						}
 					</fc:method>
 					<fc:method name="${methodName}" class="${Service.fullyQualifiedName}">
 						public Object ${methodName}() ;
 					</fc:method>
-
+				
 					<fc:method name="${methodName}" class="${ServiceImpl.fullyQualifiedName}">
-								public Object ${methodName}() {
+								public Object ${methodName}() { 
 						${Dao.name} ${Dao.defaultInstance} = new ${DaoImpl.name}();
 						${Dao.defaultInstance}.${methodName}();
 					}
 					</fc:method>
 					<fc:method name="${methodName}" class="${Controller.fullyQualifiedName}">
-						public Object ${methodName}() {
+						public Object ${methodName}() { 
 						${Service.name} ${Service.defaultInstance} = new ${ServiceImpl.name};
 						${Service.defaultInstance}.${methodName}();
 						}
 					</fc:method>
 						<fc:method name="${methodName}Test" class="${DaoImplTest.fullyQualifiedName}" optional="true">
-							public Object ${methodName}Test() {
+							public Object ${methodName}Test() { 
 							// TODO Auto-generated method block
 						}
 						</fc:method>
 						<fc:method name="${methodName}Test" class="${ServiceImplTest.fullyQualifiedName}" optional="true">
-							public Object ${methodName}Test() {
+							public Object ${methodName}Test() { 
 							// TODO Auto-generated method block
 						}
 						</fc:method>
 						<fc:method name="${methodName}Test" class="${ControllerTest.fullyQualifiedName}" optional="true">
-							public Object ${methodName}Test() {
+							public Object ${methodName}Test() { 
 						// TODO Auto-generated method block
 						}
 						</fc:method>
 			]]>
 		</template-body>
 	</template> -->
-
+	
 	 <template name="SAMPLE_FILE_TEMPLATE">
 		<description>Used to create sample file snippet</description>
 		<allowed-file-names>*</allowed-file-names>

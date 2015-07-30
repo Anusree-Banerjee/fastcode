@@ -1,31 +1,27 @@
 package org.fastcode.dialog;
 
 import static org.fastcode.common.FastCodeConstants.COMMON_CLASS_SUFFIX;
-import static org.fastcode.common.FastCodeConstants.CURRENT_PACKAGE;
 import static org.fastcode.common.FastCodeConstants.EMPTY_STR;
-import static org.fastcode.common.FastCodeConstants.ENCLOSING_PACKAGE_STR;
+import static org.fastcode.common.FastCodeConstants.ENCLOSING_FOLDER_STR;
 import static org.fastcode.common.FastCodeConstants.FC_PLUGIN;
 import static org.fastcode.common.FastCodeConstants.HYPHEN;
 import static org.fastcode.common.FastCodeConstants.NEWLINE;
 import static org.fastcode.util.MessageUtil.getChoiceFromMultipleValues;
-import static org.fastcode.util.SourceUtil.getAlteredPackageName;
-import static org.fastcode.util.SourceUtil.getDefaultPathFromProject;
 import static org.fastcode.util.SourceUtil.getFolderFromPath;
-import static org.fastcode.util.SourceUtil.getIJavaProjectFromName;
-import static org.fastcode.util.SourceUtil.getPackagesInProject;
 import static org.fastcode.util.StringUtil.isEmpty;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.core.JavaProject;
@@ -47,28 +43,28 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.fastcode.common.FastCodeColor;
-import org.fastcode.common.FastCodePackage;
+import org.fastcode.common.FastCodeFolder;
 import org.fastcode.common.FastCodeProject;
-import org.fastcode.common.OpenRequiredClassesData;
-import org.fastcode.common.PackageSelectionDialog;
+import org.fastcode.common.OpenCloseFilesData;
 import org.fastcode.popup.actions.snippet.FastCodeCache;
 import org.fastcode.setting.GlobalSettings;
 
-public class OpenRequiredClassesDialog extends TrayDialog {
-	private Combo				packageCombo;
-	private Button				packageBrowseButton;
-	private Button				closeOthers;
-	private Text				errorMessageText;
-	private Text				patternText;
-	protected Shell				shell;
-	OpenRequiredClassesData		openRequiredClassesData;
-	protected final String		defaultMessage	= NEWLINE;
-	private String				errorMessage;
-	private Label				projectLabel;
-	private Combo				projectCombo;
-	Map<String, IProject>		prjMap			= new HashMap<String, IProject>();
-	private IPackageFragment	currentPackage;
+public class OpenCloseFilesDialog extends TrayDialog {
+	private Combo			folderCombo;
+	private Button			folderBrowseButton;
+	private Button			closeOthers;
+	private Text			errorMessageText;
+	private Text			patternText;
+	protected Shell			shell;
+	OpenCloseFilesData		openRequiredClassesData;
+	protected final String	defaultMessage	= NEWLINE;
+	private String			errorMessage;
+	private Label			projectLabel;
+	private Combo			projectCombo;
+	Map<String, IProject>	prjMap			= new HashMap<String, IProject>();
+	IFolder					currentFolder;
 
 	/**
 	 * @param parent
@@ -83,10 +79,10 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 		createErrorMessageText(parent);
 		createProjectSelectionPane(parent);
 
-		createPackageSelectionPane(parent);
+		createFolderSelectionPane(parent);
 		createPattern(parent);
 		createCloseOthers(parent);
-		this.packageCombo.setFocus();
+		this.folderCombo.setFocus();
 
 		final String projectName = this.projectCombo.getText();
 		if (!isEmpty(projectName)) {
@@ -96,6 +92,23 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 		return parent;
 	}
 
+	@Override
+	protected void okPressed() {
+		if (isEmpty(this.folderCombo.getText())) {
+			setErrorMessage("Please select a folder");
+			return;
+		} else {
+			setErrorMessage(this.defaultMessage);
+		}
+
+		if (isEmpty(this.patternText.getText())) {
+			setErrorMessage("Please enter pattern");
+			return;
+		} else {
+			setErrorMessage(this.defaultMessage);
+		}
+		super.okPressed();
+	}
 	private void createCloseOthers(final Composite parent) {
 		final Composite composite = new Composite(parent, parent.getStyle());
 		final GridLayout layout = new GridLayout();
@@ -116,7 +129,7 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 			@Override
 			public void widgetSelected(final SelectionEvent event) {
 				final Button b = (Button) event.getSource();
-				OpenRequiredClassesDialog.this.openRequiredClassesData.setCloseOthers(b.getSelection());
+				OpenCloseFilesDialog.this.openRequiredClassesData.setCloseOthers(b.getSelection());
 			}
 
 			@Override
@@ -152,8 +165,13 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 			public void modifyText(final ModifyEvent e) {
 				final Text text = (Text) e.widget;
 				final String value = text.getText();
+				if (isEmpty(value)) {
+					setErrorMessage("Please enter pattern");
+				} else {
+					setErrorMessage(OpenCloseFilesDialog.this.defaultMessage);
+				}
 				//System.out.println(value.replace(ASTERISK, BACK_SLASH + ASTERISK));
-				OpenRequiredClassesDialog.this.openRequiredClassesData.setPattern(value/*.replace(ASTERISK, BACK_SLASH + ASTERISK)*/);
+				OpenCloseFilesDialog.this.openRequiredClassesData.setPattern(value/*.replace(ASTERISK, BACK_SLASH + ASTERISK)*/);
 			}
 		});
 	}
@@ -162,7 +180,7 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 	 * @param shell
 	 * @param createVariableData
 	 */
-	public OpenRequiredClassesDialog(final Shell shell, final OpenRequiredClassesData openRequiredClassesData) {
+	public OpenCloseFilesDialog(final Shell shell, final OpenCloseFilesData openRequiredClassesData) {
 		super(shell);
 		this.shell = shell;
 		this.openRequiredClassesData = openRequiredClassesData;
@@ -175,7 +193,7 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 
 	}
 
-	private void createPackageSelectionPane(final Composite parent) {
+	private void createFolderSelectionPane(final Composite parent) {
 		final Composite composite = new Composite(parent, parent.getStyle());
 		final GridLayout layout = new GridLayout();
 		layout.numColumns = 3;
@@ -184,64 +202,84 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 
 		final GridData gridDataLabel = new GridData();
 		final Label label = new Label(composite, SWT.NONE);
-		label.setText("Select Package:            ");
+		label.setText("Select Folder:            ");
 		label.setLayoutData(gridDataLabel);
 
 		final GridData gridDataText = new GridData(GridData.FILL_HORIZONTAL);
 		gridDataText.grabExcessHorizontalSpace = true;
 
-		this.packageCombo = new Combo(composite, SWT.READ_ONLY | SWT.DROP_DOWN);// new
+		this.folderCombo = new Combo(composite, SWT.READ_ONLY | SWT.DROP_DOWN);// new
 		// Text(composite,
 		// SWT.BORDER);
 		//this.packageCombo.setSize(50, 20);
-		this.packageCombo.setLayoutData(gridDataText);
+		this.folderCombo.setLayoutData(gridDataText);
 		gridDataText.minimumWidth = 450;
 		final FastCodeCache fastCodeCache = FastCodeCache.getInstance();
-		if (this.openRequiredClassesData.getCompUnit() != null) {
-			this.currentPackage = this.openRequiredClassesData.getCompUnit().getPrimary().findPrimaryType().getPackageFragment();
-			this.packageCombo.add(ENCLOSING_PACKAGE_STR + HYPHEN + getAlteredPackageName(this.currentPackage));
+
+		if (this.openRequiredClassesData.getCompUnit() == null) {
+			if (this.openRequiredClassesData.getEditorPart() != null) {
+				final IFile file = (IFile) this.openRequiredClassesData.getEditorPart().getEditorInput().getAdapter(IFile.class);
+
+				try {
+					if (file != null) {
+						final String srcPath = file
+								.getProjectRelativePath()
+								.toString()
+								.substring(0,
+										file.getProjectRelativePath().toString().indexOf(file.getProjectRelativePath().lastSegment()) - 1);
+						final IFolder folder = this.openRequiredClassesData.getProject().getFolder(srcPath);
+						if (folder != null) {
+							this.currentFolder = folder;
+							this.folderCombo.add(ENCLOSING_FOLDER_STR + HYPHEN + this.currentFolder.getFullPath().toString());
+
+							//this.folderNameCombo[count].select(0);
+						}
+					}
+				} catch (final Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+
 		}
-		if (!fastCodeCache.getPackageSet().isEmpty()) {
-			for (final IPackageFragment pkgFrgmt : fastCodeCache.getPackageSet()) {
-				if (this.currentPackage != null && this.currentPackage.equals(pkgFrgmt)) {
+
+		if (!fastCodeCache.getFolderSet().isEmpty()) {
+			for (final IFolder folder : fastCodeCache.getFolderSet()) {
+				if (this.currentFolder != null && this.currentFolder.equals(folder)) {
 					continue;
 				}
-				/*if (!isEmpty(project)) {
-					if (!project.equals(pkgFrgmt.getJavaProject().getElementName())) {
-						continue;
-					}
-				}*/
 
 				boolean addItem = true;
-				if (this.packageCombo.getItems() != null) {
-					for (final String existingPkg : this.packageCombo.getItems()) {
-						if (existingPkg.contains(ENCLOSING_PACKAGE_STR)) {
+				if (this.folderCombo.getItems() != null) {
+					for (final String existingFolder : this.folderCombo.getItems()) {
+						if (existingFolder.contains(ENCLOSING_FOLDER_STR)) {
 							continue;
 						}
-						if (existingPkg.equals(getAlteredPackageName(pkgFrgmt))) {
+						if (existingFolder.equals(folder.getFullPath().toString())) {
 							addItem = false;
 							break;
+
 						}
 					}
 					if (addItem) {
-						this.packageCombo.add(getAlteredPackageName(pkgFrgmt));
+						this.folderCombo.add(folder.getFullPath().toString());
 					}
 				}
 			}
 		}
-		this.packageCombo.addSelectionListener(new SelectionListener() {
+		this.folderCombo.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetSelected(final SelectionEvent event) {
-				final Combo pkgCombo = (Combo) event.widget;
-				String selectedPkgName = pkgCombo.getText();
-				if (selectedPkgName.contains(ENCLOSING_PACKAGE_STR)) {
-					selectedPkgName = OpenRequiredClassesDialog.this.currentPackage.getElementName();
+				String selectedFolderPath = ((Combo) event.widget).getText();
+				if (selectedFolderPath.contains(ENCLOSING_FOLDER_STR)) {
+					selectedFolderPath = OpenCloseFilesDialog.this.currentFolder.getFullPath().toString();
 				}
 				try {
-					for (final IPackageFragment pkg : fastCodeCache.getPackageSet()) {
-						if (getAlteredPackageName(pkg).equals(selectedPkgName)) {
-							OpenRequiredClassesDialog.this.openRequiredClassesData.setFastCodePackage(new FastCodePackage(pkg));
+					if (!fastCodeCache.getFolderSet().isEmpty()) {
+						for (final IFolder folder : fastCodeCache.getFolderSet()) {
+							if (folder.getFullPath().toString().equals(selectedFolderPath)) {
+								OpenCloseFilesDialog.this.openRequiredClassesData.setFastCodeFolder(new FastCodeFolder(folder));
+							}
 						}
 					}
 				} catch (final Exception ex) {
@@ -255,31 +293,21 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 			}
 
 		});
-		this.packageCombo.addFocusListener(new FocusListener() {
+		this.folderCombo.addFocusListener(new FocusListener() {
 
 			@Override
 			public void focusLost(final FocusEvent e) {
-				final Combo pkgCombo = (Combo) e.widget;
-				String inputPkgName = pkgCombo.getText();
-				if (!isEmpty(inputPkgName)) {
-					if (inputPkgName.contains(ENCLOSING_PACKAGE_STR)) {
-						inputPkgName = OpenRequiredClassesDialog.this.currentPackage.getElementName();
+				String inputFolderPath = ((Combo) e.widget).getText();
+				if (!isEmpty(inputFolderPath)) {
+					if (inputFolderPath.contains(ENCLOSING_FOLDER_STR)) {
+						inputFolderPath = OpenCloseFilesDialog.this.currentFolder.getFullPath().toString();
 					}
-					for (final IPackageFragment pkg : fastCodeCache.getPackageSet()) {
-						if (pkg.getElementName().equals(inputPkgName) || getAlteredPackageName(pkg).equals(inputPkgName)) {
+					for (final IFolder folder : fastCodeCache.getFolderSet()) {
+						if (folder.getFullPath().toString().equals(inputFolderPath)) {
 							return;
 						}
 					}
-					if (inputPkgName.contains(CURRENT_PACKAGE)) {
-						OpenRequiredClassesDialog.this.openRequiredClassesData.setFastCodePackage(new FastCodePackage(
-								OpenRequiredClassesDialog.this.currentPackage));
-						if (!fastCodeCache.getPackageSet().contains(OpenRequiredClassesDialog.this.currentPackage)) {
-							fastCodeCache.getPackageSet().add(OpenRequiredClassesDialog.this.currentPackage);
-
-						}
-					}
 				}
-
 			}
 
 			@Override
@@ -288,15 +316,14 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 			}
 		});
 
-		this.packageCombo.addModifyListener(new ModifyListener() {
+		this.folderCombo.addModifyListener(new ModifyListener() {
 
 			@Override
 			public void modifyText(final ModifyEvent e) {
-				final Combo pkgCombo = (Combo) e.widget;
-				if (isEmpty(pkgCombo.getText())) {
-					setErrorMessage("Please choose a package");
+				if (isEmpty(((Combo) e.widget).getText())) {
+					setErrorMessage("Please select a folder.");
 				} else {
-					setErrorMessage(OpenRequiredClassesDialog.this.defaultMessage);
+					setErrorMessage(OpenCloseFilesDialog.this.defaultMessage);
 				}
 			}
 
@@ -304,40 +331,37 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 
 		final GridData gridDataButton = new GridData();
 
-		this.packageBrowseButton = new Button(composite, SWT.PUSH);
-		this.packageBrowseButton.setText("Browse");
-		this.packageBrowseButton.setLayoutData(gridDataButton);
-		final PackageSelectionDialog selectionDialog = null;
+		this.folderBrowseButton = new Button(composite, SWT.PUSH);
+		this.folderBrowseButton.setText("Browse");
+		this.folderBrowseButton.setLayoutData(gridDataButton);
 
-		this.packageBrowseButton.addSelectionListener(new SelectionListener() {
+		this.folderBrowseButton.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetSelected(final SelectionEvent event) {
 				final Button b = (Button) event.getSource();
 				try {
-					final String srcPath = getDefaultPathFromProject(
-							getIJavaProjectFromName(OpenRequiredClassesDialog.this.openRequiredClassesData.getSelectedProject().getName()),
-							"source", EMPTY_STR);
-					final IPackageFragment allPackages[] = getPackagesInProject(
-							getIJavaProjectFromName(OpenRequiredClassesDialog.this.openRequiredClassesData.getSelectedProject().getName()),
-							srcPath, "source");
-					if (allPackages == null) {
-						return;
-					}
-					final PackageSelectionDialog selectionDialog = new PackageSelectionDialog(new Shell(), "Package ",
-							"Choose a package from below", allPackages);
-					IPackageFragment packageFragment = null;
-					if (selectionDialog.open() != CANCEL) {
-						packageFragment = (IPackageFragment) selectionDialog.getFirstResult();
-						OpenRequiredClassesDialog.this.packageCombo.setText(getAlteredPackageName(packageFragment));
+					Path path = null;
+					//final Button b = (Button) event.getSource();
+					final ContainerSelectionDialog dialog = new ContainerSelectionDialog(new Shell(), null, true, "Select a folder:");
+					dialog.setTitle("Select a Folder");
+					dialog.showClosedProjects(false);
+					if (dialog.open() != CANCEL) {
+						path = (Path) dialog.getResult()[0];
+						String srcPath = null;
+						if (path != null) {
+							final String project = path.segment(0);
+							srcPath = path.toString().substring(project.length() + 1);
+						}
+						final IFolder folder = OpenCloseFilesDialog.this.openRequiredClassesData.getSelectedProject().getProject().getFolder(new Path(srcPath));
+						OpenCloseFilesDialog.this.openRequiredClassesData.setFastCodeFolder(new FastCodeFolder(folder));
 						boolean addItem = true;
-						if (OpenRequiredClassesDialog.this.packageCombo.getItems() != null) {
-							for (final String existingPkg : OpenRequiredClassesDialog.this.packageCombo.getItems()) {
-								if (existingPkg.equals(getAlteredPackageName(packageFragment))) {
-									if (!OpenRequiredClassesDialog.this.packageCombo.getText().equals(existingPkg)) {
-										OpenRequiredClassesDialog.this.packageCombo.select(OpenRequiredClassesDialog.this.packageCombo
-												.indexOf(existingPkg));
-
+						if (OpenCloseFilesDialog.this.folderCombo.getItems() != null) {
+							for (final String existingFolder : OpenCloseFilesDialog.this.folderCombo.getItems()) {
+								if (existingFolder.equals(folder.getFullPath().toString())) {
+									if (!existingFolder.equals(OpenCloseFilesDialog.this.folderCombo.getText())) {
+										OpenCloseFilesDialog.this.folderCombo.select(OpenCloseFilesDialog.this.folderCombo
+												.indexOf(existingFolder));
 									}
 									addItem = false;
 									break;
@@ -345,18 +369,17 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 							}
 						}
 						if (addItem) {
-							OpenRequiredClassesDialog.this.packageCombo.add(getAlteredPackageName(packageFragment));
-							OpenRequiredClassesDialog.this.packageCombo.select(OpenRequiredClassesDialog.this.packageCombo.getItemCount() - 1);
+							OpenCloseFilesDialog.this.folderCombo.add(folder.getFullPath().toString());
+							OpenCloseFilesDialog.this.folderCombo.select(OpenCloseFilesDialog.this.folderCombo.getItemCount() - 1);
 						}
-						if (!fastCodeCache.getPackageSet().contains(packageFragment)) {
-							fastCodeCache.getPackageSet().add(packageFragment);
+						if (!fastCodeCache.getFolderSet().contains(folder)) {
+							fastCodeCache.getFolderSet().add(folder);
 						}
-						OpenRequiredClassesDialog.this.openRequiredClassesData.setFastCodePackage(new FastCodePackage(packageFragment));
 					}
-
 				} catch (final Exception ex) {
 					ex.printStackTrace();
 				}
+
 			}
 
 			@Override
@@ -402,27 +425,26 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 			this.prjMap.put(prj.getName(), prj);
 		}
 
-
 		if (this.openRequiredClassesData.getProject() != null) {
 			this.projectCombo.select(this.projectCombo.indexOf(this.openRequiredClassesData.getProject().getName()));
-			OpenRequiredClassesDialog.this.openRequiredClassesData.setSelectedProject(new FastCodeProject(
-					OpenRequiredClassesDialog.this.prjMap.get(this.openRequiredClassesData.getProject().getName())));
+			OpenCloseFilesDialog.this.openRequiredClassesData.setSelectedProject(new FastCodeProject(OpenCloseFilesDialog.this.prjMap
+					.get(this.openRequiredClassesData.getProject().getName())));
 		}
 
 		this.projectCombo.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetSelected(final SelectionEvent event) {
-				final String projectName = OpenRequiredClassesDialog.this.projectCombo.getText();
+				final String projectName = OpenCloseFilesDialog.this.projectCombo.getText();
 				if (!isEmpty(projectName)) {
-					OpenRequiredClassesDialog.this.openRequiredClassesData.setSelectedProject(new FastCodeProject(
-							OpenRequiredClassesDialog.this.prjMap.get(projectName)));
-					clearErrorMessage(OpenRequiredClassesDialog.this.defaultMessage);
-					isPrjInSync(OpenRequiredClassesDialog.this.prjMap.get(projectName));
+					OpenCloseFilesDialog.this.openRequiredClassesData.setSelectedProject(new FastCodeProject(
+							OpenCloseFilesDialog.this.prjMap.get(projectName)));
+					clearErrorMessage(OpenCloseFilesDialog.this.defaultMessage);
+					isPrjInSync(OpenCloseFilesDialog.this.prjMap.get(projectName));
 				} else {
 					setErrorMessage("Please select a project");
 				}
-				loadFolders(OpenRequiredClassesDialog.this.prjMap.get(projectName));
+				loadFolders(OpenCloseFilesDialog.this.prjMap.get(projectName));
 			}
 
 			@Override
@@ -552,13 +574,13 @@ public class OpenRequiredClassesDialog extends TrayDialog {
 	 */
 	private boolean isPrjInSync(final IProject project) {
 		if (project != null && !project.isSynchronized(IResource.DEPTH_INFINITE)) {
-			this.packageCombo.setEnabled(false);
-			this.packageBrowseButton.setEnabled(false);
+			this.folderCombo.setEnabled(false);
+			this.folderBrowseButton.setEnabled(false);
 			setErrorMessage("Project " + project.getName() + " is not synchronised. Please synchronise and try again.");
 			return false;
 		} else {
-			this.packageCombo.setEnabled(true);
-			this.packageBrowseButton.setEnabled(true);
+			this.folderCombo.setEnabled(true);
+			this.folderBrowseButton.setEnabled(true);
 			clearErrorMessage(this.defaultMessage);
 			return true;
 		}

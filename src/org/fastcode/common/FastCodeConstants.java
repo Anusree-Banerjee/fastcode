@@ -809,7 +809,7 @@ public class FastCodeConstants {
 
 	public static enum SECOND_TEMPLATE {
 		method("method"), field("field"), both("both"), custom("custom"), Class("class"), file("file"), none("none"), property("property"), data(
-				"data"), json("json");
+				"data");
 
 		private String	value;
 
@@ -1001,7 +1001,7 @@ public class FastCodeConstants {
 	public static final String	ASTERISK					= "*";
 
 	public static enum FIRST_TEMPLATE {
-		Class("class"), File("file"), Package("package"), Folder("folder"), Enumeration("enum"), None("none");
+		Class("class"), File("file"), Package("package"), Folder("folder"), Enumeration("enum"), json("json"),None("none");
 
 		private String	value;
 
